@@ -1,7 +1,7 @@
 require 'nokogiri'
 require 'open-uri'
 
-p Time.now.strftime("%H : %M")
+#p Time.now.strftime("%H : %M")
 
 # get ids
 ids = []
@@ -12,7 +12,8 @@ table.collect do |row|
     id = {}
     id[:name] = row.xpath('td[3]').text.strip
     id[:url] = row.xpath('td[3]/a/@href').text.strip
-    id[:last_point] = row.xpath('td[6]').text.strip
+    id[:not_updated_gw_point] = row.xpath('td[5]').text.strip.to_i
+    id[:last_point] = row.xpath('td[6]').text.strip.to_i
     ids.push id
   end
 end
@@ -25,16 +26,16 @@ end
 ids.each do |id|
   doc = Nokogiri::HTML(open("http://id.fantasy.premierleague.com#{id[:url]}"))
   doc.xpath("//div[contains(@class, 'ism-scoreboard-panel__points')]").collect do |node|
-    id[:gw_point] = node.text.strip.gsub(/[poin]/, '')
+    id[:gw_point] = node.text.strip.gsub(/[poin]/, '').to_i
 
-    # won't work if score already updated
-    id[:total_point] = id[:last_point] + id[:gw_point]
+    # won't work if score already updated / will be updated
+    id[:total_point] = id[:last_point] + id[:gw_point] - id[:not_updated_gw_point]
   end
 end
 
 # print only latest score (& sort it)
-ids.sort_by! {|hash| hash[:gw_point]}
+ids.sort_by! {|hash| hash[:total_point]}
 ids.reverse!
-ids.each {|hash| p "#{hash[:name]} : #{hash[:gw_point]}"}
+ids.each {|hash| p "#{hash[:name]} : #{hash[:total_point]}"}
 
-p Time.now.strftime("%H : %M")
+#p Time.now.strftime("%H : %M")
