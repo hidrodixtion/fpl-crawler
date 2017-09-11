@@ -4,16 +4,17 @@ require 'watir'
 require 'yaml'
 #p Time.now.strftime("%H : %M")
 
+class Crawler
 @ids = []
 
-def init  
+def initialize 
   if File.exist?("fpl_ids.yml")
     @ids = YAML.load_file "fpl_ids.yml"
   else
     scrape_ids()
   end
 
-  scrape_points()
+  # scrape_points()
 end
 
 # get ids
@@ -47,6 +48,8 @@ def scrape_points
   @ids.each do |id|
     get_point id 
   end
+
+  return @ids
 end
 
 def get_point(id, browser = nil)
@@ -65,12 +68,12 @@ def get_point(id, browser = nil)
   if id[:gw_point] == nil
     get_point(id, browser)
   else
-    p id
-
+    # p id
     browser.close
   end
 end
 
-init()
+# init()
+end
 
 #p Time.now.strftime("%H : %M")
